@@ -462,8 +462,8 @@ class FilterBox extends React.PureComponent {
     const { filtersFields = [] } = this.props;
     const count = filtersFields ? filtersFields.length : 0;
     const grid = this.computeFiltersGrid();
-    return grid.map(filterRows => (
-      <StyledFilterWrapper className="filter-wrapper">
+    return grid.map((filterRows, index) => (
+      <StyledFilterWrapper className="filter-wrapper" key={index}>
         {filterRows.map(filterConfig => {
           const { label, key } = filterConfig;
           return (
