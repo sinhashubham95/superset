@@ -119,7 +119,6 @@ const StyledFilterContainer = styled.div`
 const StyledOtherFilterWrapper = styled.div`
   ${({ theme }) => `
      margin-left: ${theme.gridUnit * 2 + 2}px;
-     margin-right: ${theme.gridUnit * 2 + 2}px;
      margin-bottom: ${theme.gridUnit * 2 + 2}px;
    `}
 `;
@@ -302,10 +301,18 @@ class FilterBox extends React.PureComponent {
   }
 
   computeFiltersGrid = () => {
-    const { filtersFields = [] } = this.props;
+    const { filtersFields = [], showDateFilter } = this.props;
     const grid = [[]];
     let currentRow = 0;
     let currentWidth = 0;
+    if (showDateFilter) {
+      const dateFilterWidth =
+        filtersFields.length && filtersFields[0] && filtersFields[0].width
+          ? filtersFields[0].width
+          : 100;
+      grid[0].push({ width: dateFilterWidth, key: TIME_RANGE });
+      currentWidth = dateFilterWidth;
+    }
     for (let i = 0; i < filtersFields.length; i += 1) {
       if (currentWidth + filtersFields[i].width > 100) {
         currentWidth = 0;
@@ -323,25 +330,18 @@ class FilterBox extends React.PureComponent {
     const label = TIME_FILTER_LABELS.time_range;
     if (showDateFilter) {
       return (
-        <StyledOtherFilterWrapper className="row space-1 other-filter-wrapper">
-          <div
-            className="col-lg-12 col-xs-12"
-            data-test="date-filter-container"
-          >
-            <DateFilterControl
-              name={TIME_RANGE}
-              label={label}
-              description={t('Select start and end date')}
-              onChange={newValue => {
-                this.changeFilter(TIME_RANGE, newValue);
-              }}
-              onOpenDateFilterControl={this.onOpenDateFilterControl}
-              onCloseDateFilterControl={this.onCloseDateFilterControl}
-              value={this.state.selectedValues[TIME_RANGE] || 'No filter'}
-              endpoints={['inclusive', 'exclusive']}
-            />
-          </div>
-        </StyledOtherFilterWrapper>
+        <div className="col-lg-12 col-xs-12" data-test="date-filter-container">
+          <DateFilterControl
+            name={TIME_RANGE}
+            label={label}
+            description={t('Select start and end date')}
+            onChange={newValue => this.changeFilter(TIME_RANGE, newValue)}
+            onOpenDateFilterControl={this.onOpenDateFilterControl}
+            onCloseDateFilterControl={this.onCloseDateFilterControl}
+            value={this.state.selectedValues[TIME_RANGE] || 'No filter'}
+            endpoints={['inclusive', 'exclusive']}
+          />
+        </div>
       );
     }
     return null;
@@ -431,7 +431,7 @@ class FilterBox extends React.PureComponent {
         loadOptions={this.debounceLoadOptions(key)}
         defaultOptions={this.transformOptions(data)}
         key={key}
-        placeholder={t('Type or Select [%s]', label)}
+        placeholder={t('Select...')}
         isMulti={isMultiple}
         isClearable={isClearable}
         value={value}
@@ -462,10 +462,23 @@ class FilterBox extends React.PureComponent {
     const { filtersFields = [] } = this.props;
     const count = filtersFields ? filtersFields.length : 0;
     const grid = this.computeFiltersGrid();
+    console.log('grid', grid);
     return grid.map((filterRows, index) => (
       <StyledFilterWrapper className="filter-wrapper" key={index}>
         {filterRows.map(filterConfig => {
           const { label, key } = filterConfig;
+          if (key === TIME_RANGE) {
+            return (
+              <div
+                className="date-filter-wrapper"
+                style={{
+                  width: `${100 / (filterRows.length + 1)}%`,
+                }}
+              >
+                {this.renderDateFilter()}
+              </div>
+            );
+          }
           return (
             <StyledFilterContainer
               key={key}
@@ -507,7 +520,6 @@ class FilterBox extends React.PureComponent {
           `}
         />
         <div style={{ width, height, overflow: 'auto' }}>
-          {this.renderDateFilter()}
           {this.renderDatasourceFilters()}
           {this.renderFilters()}
           {!instantFiltering && (

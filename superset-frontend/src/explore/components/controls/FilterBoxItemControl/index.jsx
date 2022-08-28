@@ -170,7 +170,7 @@ export default class FilterBoxItemControl extends React.Component {
           )}
           control={
             <TextControl
-              value={this.state.label}
+              value={this.state.width}
               name="width"
               onChange={v => this.onControlChange('width', v)}
             />
