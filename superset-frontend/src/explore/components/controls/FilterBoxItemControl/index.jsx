@@ -164,6 +164,19 @@ export default class FilterBoxItemControl extends React.Component {
           }
         />
         <FormRow
+          label={t('Width')}
+          tooltip={t(
+            '(optional) width of the filter, by default it takes entire row',
+          )}
+          control={
+            <TextControl
+              value={this.state.label}
+              name="width"
+              onChange={v => this.onControlChange('width', v)}
+            />
+          }
+        />
+        <FormRow
           label={t('Default')}
           tooltip={t(
             '(optional) default value for the filter, when using ' +

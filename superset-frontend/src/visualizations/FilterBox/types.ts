@@ -21,6 +21,7 @@ import { ChartProps, Datasource } from '@superset-ui/core';
 export interface FilterConfig {
   column: string;
   label: string;
+  width: string;
 }
 
 export type FilterBoxChartProps = ChartProps & {

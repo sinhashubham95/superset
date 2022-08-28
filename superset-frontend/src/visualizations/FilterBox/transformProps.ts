@@ -53,6 +53,13 @@ export default function transformProps(chartProps: FilterBoxChartProps) {
     ...flt,
     key: flt.column,
     label: flt.label || verboseMap[flt.column] || flt.column,
+    width:
+      flt.width &&
+      !Number.isNaN(Number.parseInt(flt.width, 10)) &&
+      Number.parseInt(flt.width, 10) >= 1 &&
+      Number.parseInt(flt.width, 10) <= 100
+        ? Number.parseInt(flt.width, 10)
+        : 100,
   }));
 
   return {

@@ -63,6 +63,7 @@ const propTypes = {
     PropTypes.shape({
       field: PropTypes.string,
       label: PropTypes.string,
+      width: PropTypes.number,
     }),
   ),
   filtersChoices: PropTypes.objectOf(
@@ -95,28 +96,43 @@ const defaultProps = {
 
 const StyledFilterContainer = styled.div`
   ${({ theme }) => `
-    display: flex;
-    flex-direction: column;
-    margin-bottom: ${theme.gridUnit * 2 + 2}px;
+     display: flex;
+     flex-direction: column;
+     margin-bottom: ${theme.gridUnit * 2 + 2}px;
+     &:last-child {
+       margin-bottom: 0;
+     }
+     label {
+       display: flex;
+       font-weight: ${theme.typography.weights.bold};
+     }
+     .filter-badge-container {
+       width: 30px;
+       padding-right: ${theme.gridUnit * 2 + 2}px;
+     }
+     .filter-badge-container + div {
+       width: 100%;
+     }
+   `}
+`;
 
-    &:last-child {
-      margin-bottom: 0;
-    }
+const StyledOtherFilterWrapper = styled.div`
+  ${({ theme }) => `
+     margin-left: ${theme.gridUnit * 2 + 2}px;
+     margin-right: ${theme.gridUnit * 2 + 2}px;
+     margin-bottom: ${theme.gridUnit * 2 + 2}px;
+   `}
+`;
 
-    label {
-      display: flex;
-      font-weight: ${theme.typography.weights.bold};
-    }
-
-    .filter-badge-container {
-      width: 30px;
-      padding-right: ${theme.gridUnit * 2 + 2}px;
-    }
-
-    .filter-badge-container + div {
-      width: 100%;
-    }
-  `}
+const StyledFilterWrapper = styled.div`
+  ${({ theme }) => `
+     display: flex;
+     flex-direction: row;
+     justify-content: space-between;
+     flex-wrap: wrap;
+     margin-left: ${theme.gridUnit * 2 + 2}px;
+     margin-right: ${theme.gridUnit * 2 + 2}px;
+   `}
 `;
 
 class FilterBox extends React.PureComponent {
@@ -285,12 +301,29 @@ class FilterBox extends React.PureComponent {
     return this.transformOptions(options, this.getKnownMax(key, options));
   }
 
+  computeFiltersGrid = () => {
+    const { filtersFields = [] } = this.props;
+    const grid = [[]];
+    let currentRow = 0;
+    let currentWidth = 0;
+    for (let i = 0; i < filtersFields.length; i += 1) {
+      if (currentWidth + filtersFields[i].width > 100) {
+        currentWidth = 0;
+        currentRow += 1;
+        grid.push([]);
+      }
+      currentWidth += filtersFields[i].width;
+      grid[currentRow].push(filtersFields[i]);
+    }
+    return grid;
+  };
+
   renderDateFilter() {
     const { showDateFilter } = this.props;
     const label = TIME_FILTER_LABELS.time_range;
     if (showDateFilter) {
       return (
-        <div className="row space-1">
+        <StyledOtherFilterWrapper className="row space-1 other-filter-wrapper">
           <div
             className="col-lg-12 col-xs-12"
             data-test="date-filter-container"
@@ -308,7 +341,7 @@ class FilterBox extends React.PureComponent {
               endpoints={['inclusive', 'exclusive']}
             />
           </div>
-        </div>
+        </StyledOtherFilterWrapper>
       );
     }
     return null;
@@ -427,15 +460,30 @@ class FilterBox extends React.PureComponent {
 
   renderFilters() {
     const { filtersFields = [] } = this.props;
-    return filtersFields.map(filterConfig => {
-      const { label, key } = filterConfig;
-      return (
-        <StyledFilterContainer key={key} className="filter-container">
-          <FormLabel htmlFor={`LABEL-${key}`}>{label}</FormLabel>
-          {this.renderSelect(filterConfig)}
-        </StyledFilterContainer>
-      );
-    });
+    const count = filtersFields ? filtersFields.length : 0;
+    const grid = this.computeFiltersGrid();
+    return grid.map(filterRows => (
+      <StyledFilterWrapper className="filter-wrapper">
+        {filterRows.map(filterConfig => {
+          const { label, key } = filterConfig;
+          return (
+            <StyledFilterContainer
+              key={key}
+              className="filter-container"
+              styles={css`
+                flex-direction: column;
+              `}
+              style={{
+                width: `${100 / (filterRows.length + 1)}%`,
+              }}
+            >
+              <FormLabel htmlFor={`LABEL-${key}`}>{label}</FormLabel>
+              {this.renderSelect(filterConfig)}
+            </StyledFilterContainer>
+          );
+        })}
+      </StyledFilterWrapper>
+    ));
   }
 
   render() {
@@ -444,15 +492,14 @@ class FilterBox extends React.PureComponent {
     return (
       <>
         <Global
+          className="filter-root"
           styles={css`
             .dashboard .filter_box .slice_container > div:not(.alert) {
               padding-top: 0;
             }
-
             .filter_box {
               padding: ${gridUnit * 2 + 2}px 0;
-              overflow: visible !important;
-
+              overflow: auto;
               &:hover {
                 z-index: ${zIndex.max};
               }

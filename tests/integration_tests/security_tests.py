@@ -28,7 +28,6 @@ import prison
 import pytest
 
 from flask import current_app
-from superset.datasource.dao import DatasourceDAO
 
 from superset.models.dashboard import Dashboard
 
