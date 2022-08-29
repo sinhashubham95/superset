@@ -54,6 +54,17 @@ export default {
         ],
         [
           {
+            name: 'date_filter_label',
+            config: {
+              type: 'TextControl',
+              label: t('Date filter Label'),
+              default: t('Time Range'),
+              description: t('Label for time filter'),
+            },
+          },
+        ],
+        [
+          {
             name: 'instant_filtering',
             config: {
               type: 'CheckboxControl',

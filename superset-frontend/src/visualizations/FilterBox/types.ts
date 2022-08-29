@@ -26,5 +26,8 @@ export interface FilterConfig {
 
 export type FilterBoxChartProps = ChartProps & {
   datasource?: Datasource;
-  formData: ChartProps['formData'] & { filterConfigs: FilterConfig[] };
+  formData: ChartProps['formData'] & {
+    filterConfigs: FilterConfig[];
+    dateFilterLabel: string;
+  };
 };

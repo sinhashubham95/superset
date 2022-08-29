@@ -37,9 +37,11 @@ export default function transformProps(chartProps: FilterBoxChartProps) {
     onFilterMenuOpen = NOOP,
     onFilterMenuClose = NOOP,
   } = hooks;
+
   const {
     sliceId,
     dateFilter,
+    dateFilterLabel,
     instantFiltering,
     showDruidTimeGranularity,
     showDruidTimeOrigin,
@@ -75,6 +77,7 @@ export default function transformProps(chartProps: FilterBoxChartProps) {
     onFilterMenuClose,
     origSelectedValues: initialValues || {},
     showDateFilter: dateFilter,
+    dateFilterLabel,
     showDruidTimeGrain: showDruidTimeGranularity,
     showDruidTimeOrigin,
     showSqlaTimeColumn,

@@ -80,6 +80,7 @@ const propTypes = {
   onFilterMenuOpen: PropTypes.func,
   onFilterMenuClose: PropTypes.func,
   showDateFilter: PropTypes.bool,
+  dateFilterLabel: PropTypes.string,
   showSqlaTimeGrain: PropTypes.bool,
   showSqlaTimeColumn: PropTypes.bool,
 };
@@ -89,6 +90,7 @@ const defaultProps = {
   onFilterMenuOpen: () => {},
   onFilterMenuClose: () => {},
   showDateFilter: false,
+  dateFilterLabel: t('Time Range'),
   showSqlaTimeGrain: false,
   showSqlaTimeColumn: false,
   instantFiltering: false,
@@ -319,14 +321,13 @@ class FilterBox extends React.PureComponent {
   };
 
   renderDateFilter() {
-    const { showDateFilter } = this.props;
-    const label = TIME_FILTER_LABELS.time_range;
+    const { showDateFilter, dateFilterLabel } = this.props;
     if (showDateFilter) {
       return (
         <div className="col-lg-12 col-xs-12" data-test="date-filter-container">
           <DateFilterControl
             name={TIME_RANGE}
-            label={label}
+            label={dateFilterLabel}
             description={t('Select start and end date')}
             onChange={newValue => this.changeFilter(TIME_RANGE, newValue)}
             onOpenDateFilterControl={this.onOpenDateFilterControl}
