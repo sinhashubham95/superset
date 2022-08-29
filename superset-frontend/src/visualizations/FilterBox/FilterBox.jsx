@@ -96,42 +96,35 @@ const defaultProps = {
 
 const StyledFilterContainer = styled.div`
   ${({ theme }) => `
-     display: flex;
-     flex-direction: column;
-     margin-bottom: ${theme.gridUnit * 2 + 2}px;
-     &:last-child {
-       margin-bottom: 0;
-     }
-     label {
-       display: flex;
-       font-weight: ${theme.typography.weights.bold};
-     }
-     .filter-badge-container {
-       width: 30px;
-       padding-right: ${theme.gridUnit * 2 + 2}px;
-     }
-     .filter-badge-container + div {
-       width: 100%;
-     }
-   `}
-`;
-
-const StyledOtherFilterWrapper = styled.div`
-  ${({ theme }) => `
-     margin-left: ${theme.gridUnit * 2 + 2}px;
-     margin-bottom: ${theme.gridUnit * 2 + 2}px;
-   `}
+      display: flex;
+      flex-direction: column;
+      margin-bottom: ${theme.gridUnit * 2 + 2}px;
+      &:last-child {
+        margin-bottom: 0;
+      }
+      label {
+        display: flex;
+        font-weight: ${theme.typography.weights.bold};
+      }
+      .filter-badge-container {
+        width: 30px;
+        padding-right: ${theme.gridUnit * 2 + 2}px;
+      }
+      .filter-badge-container + div {
+        width: 100%;
+      }
+    `}
 `;
 
 const StyledFilterWrapper = styled.div`
   ${({ theme }) => `
-     display: flex;
-     flex-direction: row;
-     justify-content: space-between;
-     flex-wrap: wrap;
-     margin-left: ${theme.gridUnit * 2 + 2}px;
-     margin-right: ${theme.gridUnit * 2 + 2}px;
-   `}
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-left: ${theme.gridUnit * 2 + 2}px;
+      margin-right: ${theme.gridUnit * 2 + 2}px;
+    `}
 `;
 
 class FilterBox extends React.PureComponent {
@@ -410,7 +403,6 @@ class FilterBox extends React.PureComponent {
       });
     const {
       key,
-      label,
       [FILTER_CONFIG_ATTRIBUTES.MULTIPLE]: isMultiple,
       [FILTER_CONFIG_ATTRIBUTES.DEFAULT_VALUE]: defaultValue,
       [FILTER_CONFIG_ATTRIBUTES.CLEARABLE]: isClearable,
@@ -459,10 +451,7 @@ class FilterBox extends React.PureComponent {
   }
 
   renderFilters() {
-    const { filtersFields = [] } = this.props;
-    const count = filtersFields ? filtersFields.length : 0;
     const grid = this.computeFiltersGrid();
-    console.log('grid', grid);
     return grid.map((filterRows, index) => (
       <StyledFilterWrapper className="filter-wrapper" key={index}>
         {filterRows.map(filterConfig => {

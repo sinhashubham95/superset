@@ -28,8 +28,7 @@ import {
 } from 'src/explore/components/controls/DateFilterControl/types';
 
 export const FRAME_OPTIONS: SelectOptionType[] = [
-  { value: 'Common', label: t('Last') },
-  { value: 'Calendar', label: t('Previous') },
+  { value: 'Calendar', label: t('Last') },
   { value: 'Custom', label: t('Custom') },
   { value: 'Advanced', label: t('Advanced') },
   { value: 'No filter', label: t('No filter') },
@@ -47,12 +46,12 @@ export const COMMON_RANGE_VALUES_SET = new Set(
 );
 
 export const CALENDAR_RANGE_OPTIONS: SelectOptionType[] = [
-  { value: PreviousCalendarWeek, label: t('previous calendar week') },
+  { value: PreviousCalendarWeek, label: t('Last Calendar Week') },
   {
     value: PreviousCalendarMonth,
-    label: t('previous calendar month'),
+    label: t('Last Calendar Month'),
   },
-  { value: PreviousCalendarYear, label: t('previous calendar year') },
+  { value: PreviousCalendarYear, label: t('Last Calendar Year') },
 ];
 export const CALENDAR_RANGE_VALUES_SET = new Set(
   CALENDAR_RANGE_OPTIONS.map(({ value }) => value),

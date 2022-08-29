@@ -42,9 +42,7 @@ export function CalendarFrame({ onChange, value }: FrameComponentProps) {
 
   return (
     <>
-      <div className="section-title">
-        {t('Configure Time Range: Previous...')}
-      </div>
+      <div className="section-title">{t('Configure Time Range: Last...')}</div>
       <Radio.Group
         value={value}
         onChange={(e: any) => onChange(e.target.value)}
