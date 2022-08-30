@@ -23,6 +23,7 @@ import {
   PreviousCalendarWeek,
   PreviousCalendarMonth,
   PreviousCalendarYear,
+  PreviousFinancialYear,
   CommonRangeType,
   CalendarRangeType,
 } from 'src/explore/components/controls/DateFilterControl/types';
@@ -30,7 +31,6 @@ import {
 export const FRAME_OPTIONS: SelectOptionType[] = [
   { value: 'Calendar', label: t('Last') },
   { value: 'Custom', label: t('Custom') },
-  { value: 'Advanced', label: t('Advanced') },
   { value: 'No filter', label: t('No filter') },
 ];
 
@@ -52,10 +52,17 @@ export const CALENDAR_RANGE_OPTIONS: SelectOptionType[] = [
     label: t('Last Calendar Month'),
   },
   { value: PreviousCalendarYear, label: t('Last Calendar Year') },
+  { value: PreviousFinancialYear, label: t('Last Financial Year') },
 ];
 export const CALENDAR_RANGE_VALUES_SET = new Set(
   CALENDAR_RANGE_OPTIONS.map(({ value }) => value),
 );
+export const CALENDAR_RANGE_VALUE_LABEL_MAP = {
+  [PreviousCalendarWeek]: t('Last Calendar Week'),
+  [PreviousCalendarMonth]: t('Last Calendar Month'),
+  [PreviousCalendarYear]: t('Last Calendar Year'),
+  [PreviousFinancialYear]: t('Last Financial Year'),
+};
 
 const GRAIN_OPTIONS = [
   { value: 'second', label: (rel: string) => t('Seconds %s', rel) },
@@ -104,12 +111,33 @@ export const CALENDAR_RANGE_SET: Set<CalendarRangeType> = new Set([
   PreviousCalendarWeek,
   PreviousCalendarMonth,
   PreviousCalendarYear,
+  PreviousFinancialYear,
 ]);
 
 export const MOMENT_FORMAT = 'YYYY-MM-DD[T]HH:mm:ss';
 export const SEVEN_DAYS_AGO = moment()
-  .utc()
   .startOf('day')
   .subtract(7, 'days')
   .format(MOMENT_FORMAT);
-export const MIDNIGHT = moment().utc().startOf('day').format(MOMENT_FORMAT);
+export const MIDNIGHT = moment().startOf('day').format(MOMENT_FORMAT);
+
+export const LAST_FINANCIAL_YEAR_START =
+  moment().quarter() < 2
+    ? moment()
+        .month('April')
+        .startOf('month')
+        .subtract(2, 'years')
+        .format(MOMENT_FORMAT)
+    : moment()
+        .month('April')
+        .startOf('month')
+        .subtract(1, 'year')
+        .format(MOMENT_FORMAT);
+export const LAST_FINANCIAL_YEAR_UNTIL =
+  moment().quarter() < 2
+    ? moment()
+        .month('April')
+        .startOf('month')
+        .subtract(1, 'year')
+        .format(MOMENT_FORMAT)
+    : moment().month('April').startOf('month').format(MOMENT_FORMAT);

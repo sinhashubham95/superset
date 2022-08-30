@@ -80,10 +80,12 @@ export type CommonRangeType =
 export const PreviousCalendarWeek = 'previous calendar week';
 export const PreviousCalendarMonth = 'previous calendar month';
 export const PreviousCalendarYear = 'previous calendar year';
+export const PreviousFinancialYear = 'previous financial year';
 export type CalendarRangeType =
   | typeof PreviousCalendarWeek
   | typeof PreviousCalendarMonth
-  | typeof PreviousCalendarYear;
+  | typeof PreviousCalendarYear
+  | typeof PreviousFinancialYear;
 
 export type FrameComponentProps = {
   onChange: (timeRange: string) => void;

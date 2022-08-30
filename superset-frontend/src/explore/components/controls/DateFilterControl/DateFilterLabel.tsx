@@ -26,6 +26,9 @@ import {
   CALENDAR_RANGE_VALUES_SET,
   FRAME_OPTIONS,
   customTimeRangeDecode,
+  CALENDAR_RANGE_VALUE_LABEL_MAP,
+  LAST_FINANCIAL_YEAR_START,
+  LAST_FINANCIAL_YEAR_UNTIL,
 } from 'src/explore/components/controls/DateFilterControl/utils';
 import { getClientErrorObject } from 'src/utils/getClientErrorObject';
 import Button from 'src/components/Button';
@@ -40,7 +43,7 @@ import { useDebouncedEffect } from 'src/explore/exploreUtils';
 import { SLOW_DEBOUNCE } from 'src/constants';
 import { testWithId } from 'src/utils/testUtils';
 import { noOp } from 'src/utils/common';
-import { FrameType } from './types';
+import { FrameType, PreviousFinancialYear } from './types';
 import ControlPopover from '../ControlPopover/ControlPopover';
 
 import {
@@ -66,10 +69,27 @@ const guessFrame = (timeRange: string): FrameType => {
   return 'Advanced';
 };
 
+const getTimeRangeLabel = (timeRange: string): string => {
+  if (CALENDAR_RANGE_VALUES_SET.has(timeRange)) {
+    return CALENDAR_RANGE_VALUE_LABEL_MAP[timeRange];
+  }
+  return timeRange;
+};
+
 const fetchTimeRange = async (timeRange: string) => {
   const query = rison.encode_uri(timeRange);
   const endpoint = `/api/v1/time_range/?q=${query}`;
   try {
+    if (timeRange === PreviousFinancialYear) {
+      return {
+        value: formatTimeRange(
+          buildTimeRangeString(
+            LAST_FINANCIAL_YEAR_START,
+            LAST_FINANCIAL_YEAR_UNTIL,
+          ),
+        ),
+      };
+    }
     const response = await SupersetClient.get({ endpoint });
     const timeRangeString = buildTimeRangeString(
       response?.json?.result?.since || '',
@@ -373,7 +393,7 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
       >
         <Tooltip placement="top" title={tooltipTitle}>
           <Label className="pointer" data-test="time-range-trigger">
-            {actualTimeRange}
+            {getTimeRangeLabel(actualTimeRange)}
           </Label>
         </Tooltip>
       </StyledPopover>
