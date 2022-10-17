@@ -29,7 +29,7 @@ import ErrorBoundary from 'src/components/ErrorBoundary';
 import Loading from 'src/components/Loading';
 import { addDangerToast } from 'src/components/MessageToasts/actions';
 import ToastContainer from 'src/components/MessageToasts/ToastContainer';
-import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
+import { BootstrapUser, UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
 
 const debugMode = process.env.WEBPACK_MODE === 'development';
 
@@ -37,6 +37,29 @@ function log(...info: unknown[]) {
   if (debugMode) {
     logging.debug(`[superset]`, ...info);
   }
+}
+
+function logAndReload(error: any, info: any) {
+  log('error loading embeded frame', error, info);
+
+  // get the attempt
+  const location = new URL(window.location.href);
+  let attempt = location.searchParams.get('attempt');
+  if (!attempt) {
+    attempt = '1';
+  }
+
+  // check if attempts exhausted
+  let a = JSON.parse(attempt);
+  if (a >= 3) {
+    // exhausted and do nothing here
+  }
+
+  // retry
+  a += 1;
+  location.searchParams.set('attempt', JSON.stringify(a));
+  log('retrying embed', a, location);
+  window.location.replace(location.toString());
 }
 
 const LazyDashboardPage = lazy(
@@ -49,7 +72,7 @@ const LazyDashboardPage = lazy(
 const EmbeddedRoute = () => (
   <Suspense fallback={<Loading />}>
     <RootContextProviders>
-      <ErrorBoundary>
+      <ErrorBoundary onError={logAndReload}>
         <LazyDashboardPage idOrSlug={bootstrapData.embedded!.dashboard_id} />
       </ErrorBoundary>
       <ToastContainer position="top" />
@@ -116,30 +139,127 @@ function guestUnauthorizedHandler() {
 }
 
 function start() {
-  const getMeWithRole = makeApi<void, { result: UserWithPermissionsAndRoles }>({
-    method: 'GET',
-    endpoint: '/api/v1/me/roles/',
+  const result: BootstrapUser = {
+    firstName: 'nxt',
+    isActive: false,
+    isAnonymous: false,
+    lastName: 'orchestrator',
+    permissions: {},
+    roles: {
+      Guest: [
+        ['can_download', 'DynamicPlugin'],
+        ['can_read', 'AdvancedDataType'],
+        ['can_list', 'DynamicPlugin'],
+        ['can_validate_sql_json', 'Superset'],
+        ['can_this_form_post', 'ColumnarToDatabaseView'],
+        ['can_recent_activity', 'Superset'],
+        ['can_read', 'Database'],
+        ['can_approve', 'Superset'],
+        ['can_download', 'RowLevelSecurityFiltersModelView'],
+        ['can_write', 'Dashboard'],
+        ['can_write', 'DashboardPermalinkRestApi'],
+        ['can_userinfo', 'UserDBModelView'],
+        ['can_list', 'RowLevelSecurityFiltersModelView'],
+        ['can_export', 'ImportExportRestApi'],
+        ['can_get', 'Datasource'],
+        ['can_read', 'Query'],
+        ['can_read', 'Explore'],
+        ['can_grant_guest_token', 'SecurityRestApi'],
+        ['can_add_slices', 'Superset'],
+        ['can_write', 'DashboardFilterStateRestApi'],
+        ['can_override_role_permissions', 'Superset'],
+        ['can_read', 'CssTemplate'],
+        ['can_read', 'Annotation'],
+        ['can_read', 'Chart'],
+        ['can_add', 'RoleModelView'],
+        ['menu_access', 'Query Search'],
+        ['can_read', 'ExplorePermalinkRestApi'],
+        ['can_read', 'ReportSchedule'],
+        ['can_sqllab_viz', 'Superset'],
+        ['can_explore_json', 'Superset'],
+        ['can_write', 'ExploreFormDataRestApi'],
+        ['can_write', 'Database'],
+        ['can_this_form_get', 'ResetPasswordView'],
+        ['can_tagged_objects', 'TagView'],
+        ['can_edit', 'RoleModelView'],
+        ['menu_access', 'Plugins'],
+        ['can_export', 'SavedQuery'],
+        ['can_this_form_get', 'ColumnarToDatabaseView'],
+        ['can_list', 'AsyncEventsRestApi'],
+        ['can_warm_up_cache', 'Superset'],
+        ['can_post', 'TagView'],
+        ['can_save_dash', 'Superset'],
+        ['can_read', 'Dataset'],
+        ['can_stop_query', 'Superset'],
+        ['can_delete', 'TabStateView'],
+        ['can_read', 'Log'],
+        ['can_fave_dashboards', 'Superset'],
+        ['can_favstar', 'Superset'],
+        ['can_read', 'AvailableDomains'],
+        ['can_delete', 'TableSchemaView'],
+        ['can_save', 'Datasource'],
+        ['can_dashboard', 'Superset'],
+        ['can_external_metadata', 'Datasource'],
+        ['can_write', 'Chart'],
+        ['can_get', 'OpenApi'],
+        ['can_delete', 'FilterSets'],
+        ['can_get', 'MenuApi'],
+        ['menu_access', 'Data'],
+        ['can_estimate_query_cost', 'Superset'],
+        ['can_my_queries', 'SqlLab'],
+        ['can_samples', 'Datasource'],
+        ['can_read', 'EmbeddedDashboard'],
+        ['muldelete', 'RowLevelSecurityFiltersModelView'],
+        ['can_store', 'KV'],
+        ['can_this_form_post', 'ExcelToDatabaseView'],
+        ['can_write', 'DynamicPlugin'],
+        ['can_show', 'DynamicPlugin'],
+        ['can_duplicate', 'Dataset'],
+        ['can_delete', 'DynamicPlugin'],
+        ['can_tables', 'Superset'],
+        ['can_read', 'Dashboard'],
+        ['can_created_slices', 'Superset'],
+        ['can_read', 'SavedQuery'],
+        ['can_read', 'DashboardPermalinkRestApi'],
+        ['can_write', 'Dataset'],
+        ['can_add', 'AccessRequestsModelView'],
+        ['can_delete', 'RowLevelSecurityFiltersModelView'],
+        ['can_write', 'Log'],
+        ['can_read', 'DashboardFilterStateRestApi'],
+        ['can_this_form_get', 'UserInfoEditView'],
+        ['can_query', 'Api'],
+        ['menu_access', 'Datasets'],
+        ['can_export', 'Chart'],
+        ['can_add', 'FilterSets'],
+        ['can_write', 'ExplorePermalinkRestApi'],
+        ['can_edit', 'UserDBModelView'],
+        ['can_sql_json', 'Superset'],
+        ['can_read', 'ExploreFormDataRestApi'],
+        ['all_datasource_access', 'all_datasource_access'],
+        ['can_add', 'DynamicPlugin'],
+        ['can_this_form_get', 'ExcelToDatabaseView'],
+        ['can_explore', 'Superset'],
+        ['can_export', 'Dataset'],
+        ['can_add', 'RowLevelSecurityFiltersModelView'],
+        ['can_edit', 'DynamicPlugin'],
+        ['menu_access', 'Databases'],
+        ['can_extra_table_metadata', 'Superset'],
+        ['can_delete', 'TagView'],
+        ['can_time_range', 'Api'],
+        ['can_add', 'UserDBModelView'],
+        ['can_show', 'RoleModelView'],
+        ['can_edit', 'RowLevelSecurityFiltersModelView'],
+        ['can_query_form_data', 'Api'],
+      ],
+    },
+    username: 'nxt.prod',
+  };
+  bootstrapData.user = result;
+  store.dispatch({
+    type: USER_LOADED,
+    user: result,
   });
-  return getMeWithRole().then(
-    ({ result }) => {
-      // fill in some missing bootstrap data
-      // (because at pageload, we don't have any auth yet)
-      // this allows the frontend's permissions checks to work.
-      bootstrapData.user = result;
-      store.dispatch({
-        type: USER_LOADED,
-        user: result,
-      });
-      ReactDOM.render(<EmbeddedApp />, appMountPoint);
-    },
-    err => {
-      // something is most likely wrong with the guest token
-      logging.error(err);
-      showFailureMessage(
-        'Something went wrong with embedded authentication. Check the dev console for details.',
-      );
-    },
-  );
+  ReactDOM.render(<EmbeddedApp />, appMountPoint);
 }
 
 /**

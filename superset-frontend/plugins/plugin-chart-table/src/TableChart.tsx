@@ -16,13 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, {
-  CSSProperties,
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { CSSProperties, useCallback, useMemo, useState } from 'react';
 import {
   ColumnInstance,
   ColumnWithLooseAccessor,
@@ -39,12 +33,17 @@ import {
   ensureIsArray,
   GenericDataType,
   getTimeFormatterForGranularity,
-  QueryObjectFilterClause,
   styled,
   t,
   tn,
 } from '@superset-ui/core';
-
+import Switchboard from '@superset-ui/switchboard';
+import { SortEnd } from 'react-sortable-hoc';
+import Paper from '@material-ui/core/Paper';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import { DataColumnMeta, TableChartTransformedProps } from './types';
 import DataTable, {
   DataTableProps,
@@ -52,19 +51,16 @@ import DataTable, {
   SelectPageSizeRendererProps,
   SizeOption,
 } from './DataTable';
-
+import ModalList from './ModalList/ModalList';
+import Customiser from './DataTable/components/ColumnCustomiser';
 import Styles from './Styles';
 import { formatColumnValue } from './utils/formatValue';
 import { PAGE_SIZE_OPTIONS } from './consts';
 import { updateExternalFormData } from './DataTable/utils/externalAPIs';
-import getScrollBarSize from './DataTable/utils/getScrollBarSize';
+import Preferences from './utils/preferences';
+import { formatLabel } from './DataTable/utils/formatLabel';
 
 type ValueRange = [number, number];
-
-interface TableSize {
-  width: number;
-  height: number;
-}
 
 /**
  * Return sortType based on data type
@@ -144,6 +140,7 @@ function SearchInput({ count, value, onChange }: SearchInputProps) {
 }
 
 function SelectPageSize({
+  total,
   options,
   current,
   onChange,
@@ -170,7 +167,9 @@ function SelectPageSize({
           );
         })}
       </select>{' '}
-      {t('page_size.entries')}
+      {` ${t('of')} `}
+      <span className="table-total-count">{total}</span>
+      {` ${t('page_size.entries')}`}
     </span>
   );
 }
@@ -184,6 +183,8 @@ export default function TableChart<D extends DataRecord = DataRecord>(
   },
 ) {
   const {
+    dashboardId,
+    datasource,
     timeGrain,
     height,
     width,
@@ -206,18 +207,29 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     sticky = true, // whether to use sticky header
     columnColorFormatters,
     allowRearrangeColumns = false,
-    onContextMenu,
   } = props;
+
   const timestampFormatter = useCallback(
     value => getTimeFormatterForGranularity(timeGrain)(value),
     [timeGrain],
   );
-  const [tableSize, setTableSize] = useState<TableSize>({
-    width: 0,
-    height: 0,
-  });
+
+  // handle details
+  const [details, setDetails] = useState<D | null>(null);
+
+  const onDetailsClose = () => setDetails(null);
+
   // keep track of whether column order changed, so that column widths can too
   const [columnOrderToggle, setColumnOrderToggle] = useState(false);
+
+  // now create a customiser for columns
+  const columnsMetaCookieKey =
+    dashboardId && datasource
+      ? `plugin-chart-table-columns-meta-${dashboardId}-${datasource}`
+      : '';
+  const [customColumnsMeta, setCustomColumnsMeta] = useState(
+    Preferences.get<DataColumnMeta[]>(columnsMetaCookieKey, columnsMeta),
+  );
 
   const handleChange = useCallback(
     (filters: { [x: string]: DataRecordValue[] }) => {
@@ -301,7 +313,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
   );
 
   function getEmitTarget(col: string) {
-    const meta = columnsMeta?.find(x => x.key === col);
+    const meta = customColumnsMeta?.find(x => x.key === col);
     return meta?.config?.emitTarget || col;
   }
 
@@ -339,6 +351,10 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     };
   };
 
+  const onCellClick = (column: DataColumnMeta, value: DataRecordValue) => {
+    Switchboard.emit('click', { key: column.key, value });
+  };
+
   const getColumnConfigs = useCallback(
     (column: DataColumnMeta, i: number): ColumnWithLooseAccessor<D> => {
       const { key, label, isNumeric, dataType, isMetric, config = {} } = column;
@@ -357,8 +373,6 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         config.colorPositiveNegative === undefined
           ? defaultColorPN
           : config.colorPositiveNegative;
-
-      const { truncateLongCells } = config;
 
       const hasColumnColorFormatters =
         isNumeric &&
@@ -413,16 +427,12 @@ export default function TableChart<D extends DataRecord = DataRecord>(
                   colorPositiveNegative,
                 })
               : undefined)};
-            white-space: ${value instanceof Date ? 'nowrap' : undefined};
           `;
 
           const cellProps = {
             // show raw number in title in case of numeric values
             title: typeof value === 'number' ? String(value) : undefined,
-            onClick:
-              emitFilter && !valueRange
-                ? () => toggleFilter(key, value)
-                : undefined,
+            onClick: () => onCellClick(column, value),
             className: [
               className,
               value == null ? 'dt-is-null' : '',
@@ -430,37 +440,12 @@ export default function TableChart<D extends DataRecord = DataRecord>(
             ].join(' '),
           };
           if (html) {
-            if (truncateLongCells) {
-              // eslint-disable-next-line react/no-danger
-              return (
-                <StyledCell {...cellProps}>
-                  <div
-                    className="dt-truncate-cell"
-                    style={columnWidth ? { width: columnWidth } : undefined}
-                    dangerouslySetInnerHTML={html}
-                  />
-                </StyledCell>
-              );
-            }
             // eslint-disable-next-line react/no-danger
             return <StyledCell {...cellProps} dangerouslySetInnerHTML={html} />;
           }
           // If cellProps renderes textContent already, then we don't have to
           // render `Cell`. This saves some time for large tables.
-          return (
-            <StyledCell {...cellProps}>
-              {truncateLongCells ? (
-                <div
-                  className="dt-truncate-cell"
-                  style={columnWidth ? { width: columnWidth } : undefined}
-                >
-                  {text}
-                </div>
-              ) : (
-                text
-              )}
-            </StyledCell>
-          );
+          return <StyledCell {...cellProps}>{text}</StyledCell>;
         },
         Header: ({ column: col, onClick, style, onDragStart, onDrop }) => (
           <th
@@ -494,10 +479,10 @@ export default function TableChart<D extends DataRecord = DataRecord>(
               data-column-name={col.id}
               css={{
                 display: 'inline-flex',
-                alignItems: 'flex-end',
+                alignItems: 'center',
               }}
             >
-              <span data-column-name={col.id}>{label}</span>
+              <span data-column-name={col.id}>{formatLabel(label)}</span>
               <SortIcon column={col} />
             </div>
           </th>
@@ -532,8 +517,12 @@ export default function TableChart<D extends DataRecord = DataRecord>(
   );
 
   const columns = useMemo(
-    () => columnsMeta.map(getColumnConfigs),
-    [columnsMeta, getColumnConfigs],
+    () =>
+      customColumnsMeta
+        .filter(col => !col.hide)
+        .filter(col => !isRawRecords || col.isMain)
+        .map(getColumnConfigs),
+    [customColumnsMeta, getColumnConfigs],
   );
 
   const handleServerPaginationChange = useCallback(
@@ -543,61 +532,101 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     [setDataMask],
   );
 
-  const handleSizeChange = useCallback(
-    ({ width, height }: { width: number; height: number }) => {
-      setTableSize({ width, height });
-    },
+  const onCustomiserSortEnd = ({ oldIndex, newIndex }: SortEnd) =>
+    setCustomColumnsMeta(cols => {
+      const newCols = [...cols];
+      const startIndex = oldIndex < 0 ? newCols.length + oldIndex : oldIndex;
+      if (startIndex >= 0 && startIndex < newCols.length) {
+        const endIndex = newIndex < 0 ? newCols.length + newIndex : newIndex;
+        const [item] = newCols.splice(oldIndex, 1);
+        newCols.splice(endIndex, 0, item);
+      }
+      Preferences.set(columnsMetaCookieKey, newCols);
+      return newCols;
+    });
+
+  const onCustomiserColumnHide = (index: number) =>
+    setCustomColumnsMeta(cols => {
+      const newCols = [...cols];
+      newCols[index] = {
+        ...newCols[index],
+        hide: !newCols[index].hide,
+      };
+      Preferences.set(columnsMetaCookieKey, newCols);
+      return newCols;
+    });
+
+  const customiser = () => (
+    <Customiser
+      columns={customColumnsMeta}
+      style={{ maxWidth: width / 2, maxHeight: height / 2, overflow: 'auto' }}
+      onSortEnd={onCustomiserSortEnd}
+      onColumnHide={onCustomiserColumnHide}
+      useDragHandle
+      lockAxis="y"
+    />
+  );
+
+  const getDetailConfig = useCallback(
+    (d: D | null, meta: DataColumnMeta[]) => ({
+      List: () => {
+        const filteredMeta = meta
+          .filter((column: DataColumnMeta) => column.isDetail)
+          .filter((column: DataColumnMeta) => !column.hide);
+        if (d && filteredMeta.length) {
+          return (
+            <Paper>
+              <List className="detail-list">
+                {filteredMeta.map((column: DataColumnMeta, index) => (
+                  <ListItem key={String(index)}>
+                    <Grid container>
+                      <Grid item xs={6}>
+                        <Typography
+                          className="detail-list-label"
+                          variant="body2"
+                        >
+                          {formatLabel(column.key)}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography
+                          className="detail-list-value"
+                          variant="body1"
+                        >
+                          {formatColumnValue(column, d[column.key])[1]}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          );
+        }
+        return null;
+      },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
-  useLayoutEffect(() => {
-    // After initial load the table should resize only when the new sizes
-    // Are not only scrollbar updates, otherwise, the table would twicth
-    const scrollBarSize = getScrollBarSize();
-    const { width: tableWidth, height: tableHeight } = tableSize;
-    // Table is increasing its original size
-    if (
-      width - tableWidth > scrollBarSize ||
-      height - tableHeight > scrollBarSize
-    ) {
-      handleSizeChange({
-        width: width - scrollBarSize,
-        height: height - scrollBarSize,
-      });
-    } else if (
-      tableWidth - width > scrollBarSize ||
-      tableHeight - height > scrollBarSize
-    ) {
-      // Table is decreasing its original size
-      handleSizeChange({
-        width,
-        height,
-      });
-    }
-  }, [width, height, handleSizeChange, tableSize]);
+  const onRowClick = (data: D) => () => setDetails(data);
 
-  const { width: widthFromState, height: heightFromState } = tableSize;
-
-  const handleContextMenu =
-    onContextMenu && !isRawRecords
-      ? (value: D, clientX: number, clientY: number) => {
-          const filters: QueryObjectFilterClause[] = [];
-          columnsMeta.forEach(col => {
-            if (!col.isMetric) {
-              filters.push({
-                col: col.key,
-                op: '==',
-                val: value[col.key] as string | number | boolean,
-                formattedVal: String(value[col.key]),
-              });
-            }
-          });
-          onContextMenu(filters, clientX, clientY);
-        }
-      : undefined;
+  const detail = useMemo(
+    () => getDetailConfig(details, customColumnsMeta),
+    [details, customColumnsMeta, getDetailConfig],
+  );
 
   return (
     <Styles>
+      <ModalList
+        modalListClassName="modal-list modal-list-striped modal-list-condensed"
+        detail={detail}
+        width={width}
+        height={height}
+        open={!!details}
+        onClose={onDetailsClose}
+      />
       <DataTable<D>
         columns={columns}
         data={data}
@@ -606,8 +635,8 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         pageSize={pageSize}
         serverPaginationData={serverPaginationData}
         pageSizeOptions={pageSizeOptions}
-        width={widthFromState}
-        height={heightFromState}
+        width={width}
+        height={height}
         serverPagination={serverPagination}
         onServerPaginationChange={handleServerPaginationChange}
         onColumnOrderChange={() => setColumnOrderToggle(!columnOrderToggle)}
@@ -618,7 +647,12 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         selectPageSize={pageSize !== null && SelectPageSize}
         // not in use in Superset, but needed for unit tests
         sticky={sticky}
-        onContextMenu={handleContextMenu}
+        Customiser={customiser}
+        onRowClick={onRowClick}
+        enableDetails={
+          !!customColumnsMeta.filter(column => column.isDetail && !column.hide)
+            .length
+        }
       />
     </Styles>
   );

@@ -72,7 +72,8 @@ class CreateDatasetCommand(CreateMixin, BaseCommand):
         self._properties["database"] = database
 
         # Validate table exists on dataset
-        if database and not DatasetDAO.validate_table_exists(
+        sql = self._properties.get("sql", None)
+        if database and (sql is None or sql != '') and not DatasetDAO.validate_table_exists(
             database, table_name, schema
         ):
             exceptions.append(TableNotFoundValidationError(table_name))

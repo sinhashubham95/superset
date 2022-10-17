@@ -18,6 +18,7 @@
  */
 import {
   createDurationFormatter,
+  createD3NumberFormatter,
   getNumberFormatter,
   getNumberFormatterRegistry,
   NumberFormats,
@@ -63,6 +64,102 @@ export default function setupFormatters() {
     .registerValue('$,0f', getNumberFormatter('$,.4f'))
     .registerValue('$,.f', getNumberFormatter('$,.4f'))
     .registerValue('DURATION', createDurationFormatter())
+    .registerValue(
+      'CURRENCY_INDIA',
+      createD3NumberFormatter({
+        locale: {
+          decimal: '.',
+          thousands: ',',
+          grouping: [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+          currency: ['₹', ''],
+        },
+        formatString: '$,.2f',
+      }),
+    )
+    .registerValue(
+      'NUMBER_INDIA',
+      createD3NumberFormatter({
+        locale: {
+          decimal: '.',
+          thousands: ',',
+          grouping: [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+          currency: ['', ''],
+        },
+        formatString: '$,.2f',
+      }),
+    )
+    .registerValue(
+      'CURRENCY_WORDS_INDIA',
+      createD3NumberFormatter({
+        locale: {
+          decimal: '.',
+          thousands: ',',
+          grouping: [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+          currency: ['₹', ''],
+        },
+        formatString: '.3s',
+      }),
+    )
+    .registerValue(
+      'NUMBER_WORDS_INDIA',
+      createD3NumberFormatter({
+        locale: {
+          decimal: '.',
+          thousands: ',',
+          grouping: [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+          currency: ['', ''],
+        },
+        formatString: '.3s',
+      }),
+    )
+    .registerValue(
+      'CURRENCY_NO_DECIMAL_INDIA',
+      createD3NumberFormatter({
+        locale: {
+          decimal: '.',
+          thousands: ',',
+          grouping: [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+          currency: ['₹', ''],
+        },
+        formatString: '$,d',
+      }),
+    )
+    .registerValue(
+      'NUMBER_NO_DECIMAL_INDIA',
+      createD3NumberFormatter({
+        locale: {
+          decimal: '.',
+          thousands: ',',
+          grouping: [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+          currency: ['', ''],
+        },
+        formatString: '$,d',
+      }),
+    )
+    .registerValue(
+      'CURRENCY_NO_DECIMAL_WORDS_INDIA',
+      createD3NumberFormatter({
+        locale: {
+          decimal: '.',
+          thousands: ',',
+          grouping: [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+          currency: ['₹', ''],
+        },
+        formatString: '.1s',
+      }),
+    )
+    .registerValue(
+      'NUMBER_NO_DECIMAL_WORDS_INDIA',
+      createD3NumberFormatter({
+        locale: {
+          decimal: '.',
+          thousands: ',',
+          grouping: [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+          currency: ['', ''],
+        },
+        formatString: '.1s',
+      }),
+    )
     .registerValue(
       'DURATION_SUB',
       createDurationFormatter({ formatSubMilliseconds: true }),

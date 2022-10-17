@@ -18,16 +18,19 @@
  */
 import React from 'react';
 import { formatSelectOptions } from '@superset-ui/chart-controls';
+import { t } from '@superset-ui/core';
 
 export type SizeOption = [number, string];
 
 export interface SelectPageSizeRendererProps {
+  total?: number;
   current: number;
   options: SizeOption[];
   onChange: SelectPageSizeProps['onChange'];
 }
 
 function DefaultSelectRenderer({
+  total,
   current,
   options,
   onChange,
@@ -53,14 +56,13 @@ function DefaultSelectRenderer({
             </option>
           );
         })}
-      </select>{' '}
-      entries
+      </select>
+      {` of ${total} entries`}
     </span>
   );
 }
 
 export interface SelectPageSizeProps extends SelectPageSizeRendererProps {
-  total?: number;
   selectRenderer?: typeof DefaultSelectRenderer;
   onChange: (pageSize: number) => void;
 }
@@ -77,6 +79,7 @@ export default React.memo(function SelectPageSize({
   onChange,
 }: SelectPageSizeProps) {
   const sizeOptionValues = sizeOptions.map(getOptionValue);
+  console.log('total', total);
   let options = [...sizeOptions];
   // insert current size to list
   if (
@@ -88,12 +91,17 @@ export default React.memo(function SelectPageSize({
     options.splice(
       sizeOptionValues.findIndex(x => x > currentSize),
       0,
-      formatSelectOptions([currentSize])[0],
+      formatSelectOptions([[currentSize, t('page_size.all')]])[0],
     );
   }
   const current = currentSize === undefined ? sizeOptionValues[0] : currentSize;
   const SelectRenderer = selectRenderer || DefaultSelectRenderer;
   return (
-    <SelectRenderer current={current} options={options} onChange={onChange} />
+    <SelectRenderer
+      total={total}
+      current={current}
+      options={options}
+      onChange={onChange}
+    />
   );
 });

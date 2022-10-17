@@ -26,6 +26,7 @@ import React, {
   useState,
 } from 'react';
 import { styled, t } from '@superset-ui/core';
+import Switchboard from '@superset-ui/switchboard';
 import { useUiConfig } from 'src/components/UiConfigContext';
 import { Tooltip } from 'src/components/Tooltip';
 import { useDispatch, useSelector } from 'react-redux';
@@ -118,8 +119,8 @@ const SliceHeader: FC<SliceHeaderProps> = ({
 
   useEffect(() => {
     const headerElement = headerRef.current;
-    if (canExplore) {
-      setHeaderTooltip(getSliceHeaderTooltip(sliceName));
+    if (slice && slice.description) {
+      setHeaderTooltip(slice.description);
     } else if (
       headerElement &&
       (headerElement.scrollWidth > headerElement.offsetWidth ||
@@ -129,12 +130,22 @@ const SliceHeader: FC<SliceHeaderProps> = ({
     } else {
       setHeaderTooltip(null);
     }
-  }, [sliceName, width, height, canExplore]);
+  }, [slice, sliceName, width, height, canExplore]);
 
   const exploreUrl = `/explore/?dashboard_page_id=${dashboardPageId}&slice_id=${slice.slice_id}`;
 
+  const onClick = () => {
+    Switchboard.emit('click', { key: slice.slice_name });
+  };
+
   return (
-    <div className="chart-header" data-test="slice-header" ref={innerRef}>
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+    <div
+      className="chart-header"
+      data-test="slice-header"
+      ref={innerRef}
+      onClick={onClick}
+    >
       <div className="header-title" ref={headerRef}>
         <Tooltip title={headerTooltip}>
           <EditableTitle
@@ -148,7 +159,6 @@ const SliceHeader: FC<SliceHeaderProps> = ({
             emptyText=""
             onSaveTitle={updateSliceName}
             showTooltip={false}
-            url={canExplore ? exploreUrl : undefined}
           />
         </Tooltip>
         {!!Object.values(annotationQuery).length && (

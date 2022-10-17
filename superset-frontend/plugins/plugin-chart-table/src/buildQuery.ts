@@ -156,6 +156,12 @@ const buildQuery: BuildQuery<TableChartFormData> = (
       ];
     }
 
+    if (formData.all_detail_columns && queryObject.columns) {
+      queryObject.columns = [
+        ...new Set([...queryObject.columns, ...formData.all_detail_columns]),
+      ];
+    }
+
     if (formData.server_pagination) {
       return [
         { ...queryObject },

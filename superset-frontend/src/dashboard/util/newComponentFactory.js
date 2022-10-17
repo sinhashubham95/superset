@@ -25,6 +25,7 @@ import {
   DIVIDER_TYPE,
   HEADER_TYPE,
   MARKDOWN_TYPE,
+  BUTTON_TYPE,
   ROW_TYPE,
   TABS_TYPE,
   TAB_TYPE,
@@ -47,6 +48,11 @@ const typeToDefaultMetaData = {
   [DIVIDER_TYPE]: null,
   [HEADER_TYPE]: {
     text: 'New header',
+    headerSize: MEDIUM_HEADER,
+    background: BACKGROUND_TRANSPARENT,
+  },
+  [BUTTON_TYPE]: {
+    text: 'Click Me',
     headerSize: MEDIUM_HEADER,
     background: BACKGROUND_TRANSPARENT,
   },

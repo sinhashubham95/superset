@@ -20,6 +20,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
 import { max as d3Max } from 'd3-array';
+import Switchboard from '@superset-ui/switchboard';
 import { AsyncCreatableSelect, CreatableSelect } from 'src/components/Select';
 import Button from 'src/components/Button';
 import {
@@ -50,6 +51,7 @@ import {
   TIME_FILTER_LABELS,
   TIME_FILTER_MAP,
 } from 'src/explore/constants';
+import moment from 'moment';
 
 // a shortcut to a map key, used by many components
 export const TIME_RANGE = TIME_FILTER_MAP.time_range;
@@ -124,6 +126,7 @@ class FilterBox extends React.PureComponent {
     super(props);
     this.state = {
       selectedValues: props.origSelectedValues,
+      filterValues: props.origSelectedValues,
       // this flag is used by non-instant filter, to make the apply button enabled/disabled
       hasChanged: false,
     };
@@ -133,6 +136,16 @@ class FilterBox extends React.PureComponent {
     this.onFilterMenuOpen = this.onFilterMenuOpen.bind(this);
     this.onOpenDateFilterControl = this.onOpenDateFilterControl.bind(this);
     this.onFilterMenuClose = this.onFilterMenuClose.bind(this);
+  }
+
+  componentDidMount() {
+    Switchboard.defineMethod('filters', () => ({
+      ...this.state.filterValues,
+    }));
+  }
+
+  componentWillUnmount() {
+    Switchboard.defineMethod('filters', () => ({}));
   }
 
   onFilterMenuOpen(column) {
@@ -180,17 +193,23 @@ class FilterBox extends React.PureComponent {
     });
   }
 
-  changeFilter(filter, options) {
+  changeFilter(filter, options, extras) {
     const fltr = TIME_FILTER_MAP[filter] || filter;
     let vals = null;
+    let filterVals = null;
     if (options !== null) {
       if (Array.isArray(options)) {
         vals = options.map(opt => (typeof opt === 'string' ? opt : opt.value));
+        filterVals = options.map(opt =>
+          typeof opt === 'string' ? opt : opt.value,
+        );
       } else if (Object.values(TIME_FILTER_MAP).includes(fltr)) {
         vals = options.value ?? options;
+        filterVals = extras ?? options.value ?? options;
       } else {
         // must use array member for legacy extra_filters's value
         vals = ensureIsArray(options.value ?? options);
+        filterVals = ensureIsArray(options.value ?? options);
       }
     }
 
@@ -199,6 +218,10 @@ class FilterBox extends React.PureComponent {
         selectedValues: {
           ...prevState.selectedValues,
           [fltr]: vals,
+        },
+        filterValues: {
+          ...prevState.filterValues,
+          [fltr]: filterVals,
         },
         hasChanged: true,
       }),
@@ -237,6 +260,9 @@ class FilterBox extends React.PureComponent {
         label = BOOL_TRUE_DISPLAY;
       } else if (label === false) {
         label = BOOL_FALSE_DISPLAY;
+      }
+      if (typeof label === 'number') {
+        label = moment(new Date(label)).format('DD/MM/YYYY');
       }
       return { value: opt.id, label, style };
     });
@@ -299,9 +325,9 @@ class FilterBox extends React.PureComponent {
               name={TIME_RANGE}
               label={label}
               description={t('Select start and end date')}
-              onChange={newValue => {
-                this.changeFilter(TIME_RANGE, newValue);
-              }}
+              onChange={(newValue, actualNewValue) =>
+                this.changeFilter(TIME_RANGE, newValue, actualNewValue)
+              }
               onOpenDateFilterControl={this.onOpenDateFilterControl}
               onCloseDateFilterControl={this.onCloseDateFilterControl}
               value={this.state.selectedValues[TIME_RANGE] || 'No filter'}
@@ -383,7 +409,7 @@ class FilterBox extends React.PureComponent {
       [FILTER_CONFIG_ATTRIBUTES.CLEARABLE]: isClearable,
       [FILTER_CONFIG_ATTRIBUTES.SEARCH_ALL_OPTIONS]: searchAllOptions,
     } = filterConfig;
-    const data = filtersChoices[key] || [];
+    let data = filtersChoices[key] || [];
     let value = selectedValues[key] || null;
 
     // Assign default value if required

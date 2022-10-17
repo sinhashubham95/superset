@@ -43,9 +43,9 @@ export const useNativeFilters = () => {
 
   const filters = useFilters();
   const filterValues = Object.values(filters);
-  const expandFilters = getUrlParam(URL_PARAMS.expandFilters);
+  const shouldOpenFiltersByDefault = false;
   const [dashboardFiltersOpen, setDashboardFiltersOpen] = useState(
-    expandFilters ?? !!filterValues.length,
+    shouldOpenFiltersByDefault,
   );
 
   const nativeFiltersEnabled =
@@ -77,7 +77,7 @@ export const useNativeFilters = () => {
 
   useEffect(() => {
     if (
-      expandFilters === false ||
+      !shouldOpenFiltersByDefault ||
       (filterValues.length === 0 &&
         nativeFiltersEnabled &&
         ['CONVERTED', 'REVIEWING', 'NOOP'].includes(filterboxMigrationState))

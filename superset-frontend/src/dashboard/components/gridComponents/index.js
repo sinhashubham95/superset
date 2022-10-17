@@ -26,6 +26,7 @@ import {
   TAB_TYPE,
   TABS_TYPE,
   DYNAMIC_TYPE,
+  BUTTON_TYPE,
 } from '../../util/componentTypes';
 
 import ChartHolder from './ChartHolder';
@@ -37,6 +38,7 @@ import Row from './Row';
 import Tab from './Tab';
 import TabsConnected from './Tabs';
 import DynamicComponent from './DynamicComponent';
+import Button from './Button';
 
 export { default as ChartHolder } from './ChartHolder';
 export { default as Markdown } from './Markdown';
@@ -53,6 +55,7 @@ export const componentLookup = {
   [MARKDOWN_TYPE]: Markdown,
   [COLUMN_TYPE]: Column,
   [DIVIDER_TYPE]: Divider,
+  [BUTTON_TYPE]: Button,
   [HEADER_TYPE]: Header,
   [ROW_TYPE]: Row,
   [TAB_TYPE]: Tab,

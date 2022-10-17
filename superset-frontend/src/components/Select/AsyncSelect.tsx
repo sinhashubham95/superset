@@ -29,6 +29,7 @@ import React, {
   useCallback,
   useImperativeHandle,
 } from 'react';
+import moment from 'moment';
 import { ensureIsArray, styled, t } from '@superset-ui/core';
 import AntdSelect, {
   SelectProps as AntdSelectProps,
@@ -38,7 +39,7 @@ import AntdSelect, {
 import { DownOutlined, SearchOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
 import debounce from 'lodash/debounce';
-import { isEqual } from 'lodash';
+import { isEqual, isObject } from 'lodash';
 import Icons from 'src/components/Icons';
 import { getClientErrorObject } from 'src/utils/getClientErrorObject';
 import { SLOW_DEBOUNCE } from 'src/constants';
@@ -392,16 +393,40 @@ const AsyncSelect = forwardRef(
     const [selectOptions, setSelectOptions] =
       useState<OptionsType>(initialOptionsSorted);
 
+    const getLabelFromOption = (opt: any) => {
+      const isOptObject = typeof opt === 'object';
+      const isOptObjectValueNumber =
+        isOptObject && opt.value && typeof opt.value === 'number';
+      const isOptObjectValueDate =
+        isOptObject &&
+        isOptObjectValueNumber &&
+        opt.value &&
+        new Date(opt.value).getFullYear() >= 1996;
+      const isOptNumber = typeof opt === 'number';
+      return isOptObject
+        ? isOptObjectValueDate
+          ? moment(new Date(opt.value)).format('DD/MM/YYYY')
+          : opt?.label || opt.value
+        : isOptNumber
+        ? new Date(opt)
+        : opt;
+    };
+
     // add selected values to options list if they are not in it
     const fullSelectOptions = useMemo(() => {
       const missingValues: OptionsType = ensureIsArray(selectValue)
         .filter(opt => !hasOption(getValue(opt), selectOptions))
-        .map(opt =>
-          isLabeledValue(opt) ? opt : { value: opt, label: String(opt) },
-        );
+        .map(opt => ({
+          value: isObject(opt) ? opt.value : opt,
+          label: getLabelFromOption(opt),
+        }));
+      const mSelectOptions = selectOptions.map(opt => ({
+        value: isObject(opt) ? opt.value : opt,
+        label: getLabelFromOption(opt),
+      }));
       return missingValues.length > 0
-        ? missingValues.concat(selectOptions)
-        : selectOptions;
+        ? missingValues.concat(mSelectOptions)
+        : mSelectOptions;
     }, [selectOptions, selectValue]);
 
     const hasCustomLabels = fullSelectOptions.some(opt => !!opt?.customLabel);
@@ -732,7 +757,7 @@ const AsyncSelect = forwardRef(
           onSelect={handleOnSelect}
           onClear={handleClear}
           onChange={onChange}
-          options={hasCustomLabels ? undefined : fullSelectOptions}
+          options={fullSelectOptions}
           placeholder={placeholder}
           showSearch={showSearch}
           showArrow
@@ -749,18 +774,32 @@ const AsyncSelect = forwardRef(
           ref={ref}
           {...props}
         >
-          {hasCustomLabels &&
-            fullSelectOptions.map(opt => {
-              const isOptObject = typeof opt === 'object';
-              const label = isOptObject ? opt?.label || opt.value : opt;
-              const value = isOptObject ? opt.value : opt;
-              const { customLabel, ...optProps } = opt;
-              return (
-                <Option {...optProps} key={value} label={label} value={value}>
-                  {isOptObject && customLabel ? customLabel : label}
-                </Option>
-              );
-            })}
+          {fullSelectOptions.map(opt => {
+            const isOptObject = typeof opt === 'object';
+            const isOptObjectValueNumber =
+              isOptObject && opt.value && typeof opt.value === 'number';
+            const isOptNumber = typeof opt === 'number';
+            const label = isOptObject
+              ? isOptObjectValueNumber
+                ? moment(new Date(opt.value)).format('DD/MM/YYYY')
+                : opt?.label || opt.value
+              : isOptNumber
+              ? new Date(opt)
+              : opt;
+            const value = isOptObject ? opt.value : opt;
+            const { customLabel, ...optProps } = opt;
+            return (
+              <Option
+                {...optProps}
+                key={value}
+                label={label}
+                title={label}
+                value={value}
+              >
+                {isOptObject && customLabel ? customLabel : label}
+              </Option>
+            );
+          })}
         </StyledSelect>
       </StyledContainer>
     );

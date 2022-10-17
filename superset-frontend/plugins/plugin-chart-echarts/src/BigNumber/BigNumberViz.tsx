@@ -28,6 +28,7 @@ import {
   styled,
   QueryObjectFilterClause,
 } from '@superset-ui/core';
+import Switchboard from '@superset-ui/switchboard';
 import { EChartsCoreOption } from 'echarts';
 import Echart from '../components/Echart';
 import { BigNumberWithTrendlineFormData, TimeSeriesDatum } from './types';
@@ -105,6 +106,11 @@ class BigNumberVis extends React.PureComponent<BigNumberVisProps> {
     container.style.opacity = '0'; // and not visible
     return container;
   }
+
+  onClick = () => {
+    const { bigNumber, subheader } = this.props;
+    Switchboard.emit('click', { value: bigNumber, key: subheader });
+  };
 
   renderFallbackWarning() {
     const { bigNumberFallback, formatTime, showTimestamp } = this.props;
@@ -313,11 +319,11 @@ class BigNumberVis extends React.PureComponent<BigNumberVisProps> {
     }
 
     return (
-      <div className={className} style={{ height }}>
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+      <div className={className} style={{ height }} onClick={this.onClick}>
         {this.renderFallbackWarning()}
         {this.renderKicker(kickerFontSize * height)}
         {this.renderHeader(Math.ceil(headerFontSize * height))}
-        {this.renderSubheader(Math.ceil(subheaderFontSize * height))}
       </div>
     );
   }

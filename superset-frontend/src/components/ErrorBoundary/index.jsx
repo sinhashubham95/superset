@@ -18,7 +18,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { t } from '@superset-ui/core';
+import { t, styled } from '@superset-ui/core';
 import ErrorMessageWithStackTrace from 'src/components/ErrorMessage/ErrorMessageWithStackTrace';
 
 const propTypes = {
@@ -26,10 +26,19 @@ const propTypes = {
   onError: PropTypes.func,
   showMessage: PropTypes.bool,
 };
+
 const defaultProps = {
   onError: () => {},
   showMessage: true,
 };
+
+const StyledErrorBoundaryDiv = styled.div`
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: ${({ theme }) => theme.colors.grayscale.light5};
+`;
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -43,28 +52,22 @@ export default class ErrorBoundary extends React.Component {
   }
 
   render() {
-    const { error, info } = this.state;
+    const { error } = this.state;
     if (error) {
-      const firstLine = error.toString();
       const message = (
         <span>
           <strong>{t('Unexpected error')}</strong>
-          {firstLine ? `: ${firstLine}` : ''}
         </span>
       );
-      if (this.props.showMessage) {
-        return (
-          <ErrorMessageWithStackTrace
-            subtitle={message}
-            copyText={message}
-            stackTrace={info ? info.componentStack : null}
-          />
-        );
-      }
-      return null;
+      return (
+        <StyledErrorBoundaryDiv className="error-boundary">
+          <ErrorMessageWithStackTrace subtitle={message} source="explore" />
+        </StyledErrorBoundaryDiv>
+      );
     }
     return this.props.children;
   }
 }
+
 ErrorBoundary.propTypes = propTypes;
 ErrorBoundary.defaultProps = defaultProps;

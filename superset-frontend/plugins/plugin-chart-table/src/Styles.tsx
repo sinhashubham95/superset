@@ -82,17 +82,6 @@ export default styled.div`
       float: right;
     }
 
-    .dt-truncate-cell {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .dt-truncate-cell:hover {
-      overflow: visible;
-      white-space: normal;
-      height: auto;
-    }
-
     .dt-pagination {
       text-align: right;
       /* use padding instead of margin so clientHeight can capture it */
@@ -110,6 +99,14 @@ export default styled.div`
     .dt-no-results {
       text-align: center;
       padding: 1em 0.6em;
+    }
+
+    .table-row {
+      cursor: pointer;
+    }
+
+    .table-row:hover {
+      background: ${theme.colors.grayscale.light3};
     }
   `}
 `;

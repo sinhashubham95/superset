@@ -52,6 +52,7 @@ const propTypes = {
   width: PropTypes.number,
   height: PropTypes.number,
   setControlValue: PropTypes.func,
+  forceRefresh: PropTypes.func,
   timeout: PropTypes.number,
   vizType: PropTypes.string.isRequired,
   triggerRender: PropTypes.bool,
@@ -124,6 +125,10 @@ class Chart extends React.PureComponent {
     super(props);
     this.handleRenderContainerFailure =
       this.handleRenderContainerFailure.bind(this);
+
+    this.state = {
+      attempt: 1,
+    };
   }
 
   componentDidMount() {
@@ -175,7 +180,18 @@ class Chart extends React.PureComponent {
   }
 
   handleRenderContainerFailure(error, info) {
-    const { actions, chartId } = this.props;
+    const { actions, chartId, forceRefresh } = this.props;
+
+    if (this.state.attempt < 3) {
+      logging.info('reloading chart');
+      this.setState(
+        ({ attempt: currentAttempt }) => ({
+          attempt: currentAttempt + 1,
+        }),
+        forceRefresh,
+      );
+    }
+
     logging.warn(error);
     actions.chartRenderingFailed(
       error.toString(),

@@ -32,6 +32,7 @@ import NewHeader from '../gridComponents/new/NewHeader';
 import NewRow from '../gridComponents/new/NewRow';
 import NewTabs from '../gridComponents/new/NewTabs';
 import NewMarkdown from '../gridComponents/new/NewMarkdown';
+import NewButton from '../gridComponents/new/NewButton';
 import NewDynamicComponent from '../gridComponents/new/NewDynamicComponent';
 
 export interface BCPProps {
@@ -108,6 +109,7 @@ const BuilderComponentPane: React.FC<BCPProps> = ({
                       <NewHeader />
                       <NewMarkdown />
                       <NewDivider />
+                      <NewButton />
                       {dashboardComponents
                         .getAll()
                         .map(({ key: componentKey, metadata }) => (

@@ -263,7 +263,7 @@ class ChartRenderer extends React.Component {
         : '';
 
     let noResultsComponent;
-    const noResultTitle = t('No results were returned for this query');
+    const noResultTitle = t('No data available');
     const noResultDescription =
       this.props.source === 'explore'
         ? t(

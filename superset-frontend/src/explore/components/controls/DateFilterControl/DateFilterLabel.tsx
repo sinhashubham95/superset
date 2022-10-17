@@ -163,7 +163,7 @@ const IconWrapper = styled.span`
 
 interface DateFilterControlProps {
   name: string;
-  onChange: (timeRange: string) => void;
+  onChange: (timeRange: string, actualTimeRange: string) => void;
   value?: string;
   type?: Type;
   onOpenPopover?: () => void;
@@ -253,7 +253,7 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
   );
 
   function onSave() {
-    onChange(timeRangeValue);
+    onChange(timeRangeValue, evalResponse);
     setShow(false);
   }
 

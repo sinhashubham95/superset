@@ -26,6 +26,7 @@ import {
   getTimeFormatter,
   getTimeFormatterForGranularity,
   NumberFormats,
+  QueryFormMetric,
   QueryMode,
   smartDateFormatter,
   TimeFormats,
@@ -51,6 +52,20 @@ function isNumeric(key: string, data: DataRecord[] = []) {
   return data.every(
     x => x[key] === null || x[key] === undefined || typeof x[key] === 'number',
   );
+}
+
+function isQueryFormMetric(
+  key: string,
+  metrics?: QueryFormMetric[] | null,
+): boolean {
+  if (metrics) {
+    for (let i = 0; i < metrics.length; i += 1) {
+      if (metrics[i] && metrics[i] === key) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 const processDataRecords = memoizeOne(function processDataRecords(
@@ -90,6 +105,8 @@ const processColumns = memoizeOne(function processColumns(
       metrics: metrics_,
       percent_metrics: percentMetrics_,
       column_config: columnConfig = {},
+      all_columns,
+      all_detail_columns,
     },
     queriesData,
   } = props;
@@ -163,6 +180,8 @@ const processColumns = memoizeOne(function processColumns(
         isPercentMetric,
         formatter,
         config,
+        isMain: isQueryFormMetric(key, all_columns),
+        isDetail: isQueryFormMetric(key, all_detail_columns),
       };
     });
   return [metrics, percentMetrics, columns] as [
@@ -204,14 +223,12 @@ const transformProps = (
     queriesData = [],
     filterState,
     ownState: serverPaginationData,
-    hooks: {
-      onAddFilter: onChangeFilter,
-      setDataMask = () => {},
-      onContextMenu,
-    },
+    hooks: { onAddFilter: onChangeFilter, setDataMask = () => {} },
   } = chartProps;
 
   const {
+    dashboardId,
+    datasource,
     align_pn: alignPositiveNegative = true,
     color_pn: colorPositiveNegative = true,
     show_cell_bars: showCellBars = true,
@@ -250,6 +267,8 @@ const transformProps = (
     getColorFormatters(conditionalFormatting, data) ?? defaultColorFormatters;
 
   return {
+    dashboardId,
+    datasource,
     height,
     width,
     isRawRecords: queryMode === QueryMode.raw,
@@ -278,7 +297,6 @@ const transformProps = (
     columnColorFormatters,
     timeGrain,
     allowRearrangeColumns,
-    onContextMenu,
   };
 };
 

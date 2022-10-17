@@ -23,6 +23,7 @@ const webpack = require('webpack');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CompressionWebpackPlugin = require('compression-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
@@ -519,6 +520,25 @@ if (isDevMode) {
 if (analyzeBundle) {
   config.plugins.push(new BundleAnalyzerPlugin({ analyzerPort }));
 }
+
+// add compression plugins
+config.plugins.push(new CompressionWebpackPlugin({
+  filename: '[path][base].gz',
+  algorithm: 'gzip',
+  test: /\.js$|\.css$|\.html$/,
+  threshold: 10240,
+  minRatio: 0.8,
+}));
+config.plugins.push(new CompressionWebpackPlugin({
+  filename: '[path][base].br',
+  algorithm: 'brotliCompress',
+  test: /\.(js|css|html|svg)$/,
+  compressionOptions: {
+    level: 11,
+  },
+  threshold: 10240,
+  minRatio: 0.8,
+}));
 
 // Speed measurement is disabled by default
 // Pass flag --measure=true to enable

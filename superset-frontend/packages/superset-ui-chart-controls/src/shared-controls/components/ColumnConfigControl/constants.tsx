@@ -185,12 +185,38 @@ export const DEFAULT_CONFIG_FORM_LAYOUT: ColumnConfigFormLayout = {
       'columnWidth',
       { name: 'horizontalAlign', override: { defaultValue: 'left' } },
     ],
+    [
+      {
+        name: 'isFixed',
+        config: {
+          controlType: 'Checkbox',
+          defaultValue: false,
+          label: t('Is Fixed'),
+          description: t(
+            'whether this column is draggable and can be hidden or not',
+          ),
+        },
+      },
+    ],
     ['truncateLongCells'],
   ],
   [GenericDataType.NUMERIC]: [
     [
       'columnWidth',
       { name: 'horizontalAlign', override: { defaultValue: 'right' } },
+    ],
+    [
+      {
+        name: 'isFixed',
+        config: {
+          controlType: 'Checkbox',
+          defaultValue: false,
+          label: t('Is Fixed'),
+          description: t(
+            'whether this column is draggable and can be hidden or not',
+          ),
+        },
+      },
     ],
     ['d3NumberFormat'],
     ['d3SmallNumberFormat'],
@@ -202,12 +228,38 @@ export const DEFAULT_CONFIG_FORM_LAYOUT: ColumnConfigFormLayout = {
       'columnWidth',
       { name: 'horizontalAlign', override: { defaultValue: 'left' } },
     ],
+    [
+      {
+        name: 'isFixed',
+        config: {
+          controlType: 'Checkbox',
+          defaultValue: false,
+          label: t('Is Fixed'),
+          description: t(
+            'whether this column is draggable and can be hidden or not',
+          ),
+        },
+      },
+    ],
     ['d3TimeFormat'],
   ],
   [GenericDataType.BOOLEAN]: [
     [
       'columnWidth',
       { name: 'horizontalAlign', override: { defaultValue: 'left' } },
+    ],
+    [
+      {
+        name: 'isFixed',
+        config: {
+          controlType: 'Checkbox',
+          defaultValue: false,
+          label: t('Is Fixed'),
+          description: t(
+            'whether this column is draggable and can be hidden or not',
+          ),
+        },
+      },
     ],
   ],
 };

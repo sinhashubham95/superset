@@ -19,6 +19,7 @@
  */
 import React from 'react';
 import {
+  addLocaleData,
   ChartDataResponseResult,
   ensureIsArray,
   FeatureFlag,
@@ -40,16 +41,17 @@ import {
   sections,
   sharedControls,
   ControlPanelState,
-  ExtraControlProps,
   ControlState,
   emitFilterControl,
   Dataset,
   ColumnMeta,
   defineSavedMetrics,
-  getStandardizedControls,
 } from '@superset-ui/chart-controls';
 
+import i18n from './i18n';
 import { PAGE_SIZE_OPTIONS } from './consts';
+
+addLocaleData(i18n);
 
 function getQueryMode(controls: ControlStateMapping): QueryMode {
   const mode = controls?.query_mode?.value;
@@ -97,6 +99,7 @@ const queryMode: ControlConfig<'RadioButtonControl'> = {
 };
 
 const all_columns: typeof sharedControls.groupby = {
+  ...sharedControls.groupby,
   type: 'SelectControl',
   label: t('Columns'),
   description: t('Columns to display'),
@@ -104,7 +107,6 @@ const all_columns: typeof sharedControls.groupby = {
   freeForm: true,
   allowAll: true,
   commaChoosesOption: false,
-  default: [],
   optionRenderer: c => <ColumnOption showType column={c} />,
   valueRenderer: c => <ColumnOption column={c} />,
   valueKey: 'column_name',
@@ -112,7 +114,7 @@ const all_columns: typeof sharedControls.groupby = {
     options: datasource?.columns || [],
     queryMode: getQueryMode(controls),
     externalValidationErrors:
-      isRawMode({ controls }) && ensureIsArray(controlState.value).length === 0
+      isRawMode({ controls }) && ensureIsArray(controlState?.value).length === 0
         ? [t('must have a value')]
         : [],
   }),
@@ -120,37 +122,39 @@ const all_columns: typeof sharedControls.groupby = {
   resetOnHide: false,
 };
 
-const dnd_all_columns: typeof sharedControls.groupby = {
-  type: 'DndColumnSelect',
-  label: t('Columns'),
-  description: t('Columns to display'),
-  default: [],
-  mapStateToProps({ datasource, controls }, controlState) {
-    const newState: ExtraControlProps = {};
-    if (datasource?.columns[0]?.hasOwnProperty('column_name')) {
-      const options = (datasource as Dataset).columns;
-      newState.options = Object.fromEntries(
-        options.map((option: ColumnMeta) => [option.column_name, option]),
-      );
-    } else newState.options = datasource?.columns;
-    newState.queryMode = getQueryMode(controls);
-    newState.externalValidationErrors =
-      isRawMode({ controls }) && ensureIsArray(controlState.value).length === 0
+const all_detail_columns: typeof sharedControls.groupby = {
+  ...sharedControls.groupby,
+  type: 'SelectControl',
+  label: t('Detail Columns'),
+  description: t('Detail Columns to display'),
+  multi: true,
+  freeForm: true,
+  allowAll: true,
+  commaChoosesOption: false,
+  optionRenderer: c => <ColumnOption showType column={c} />,
+  valueRenderer: c => <ColumnOption column={c} />,
+  valueKey: 'column_name',
+  mapStateToProps: ({ datasource, controls }, controlState) => ({
+    options: datasource?.columns || [],
+    queryMode: QueryMode.raw,
+    externalValidationErrors:
+      !!controls?.enable_details?.value &&
+      ensureIsArray(controlState?.value).length === 0
         ? [t('must have a value')]
-        : [];
-    return newState;
-  },
-  visibility: isRawMode,
+        : [],
+  }),
+  visibility: ({ controls }: ControlPanelsContainerProps) =>
+    Boolean(controls?.enable_details?.value),
   resetOnHide: false,
 };
 
 const percent_metrics: typeof sharedControls.metrics = {
+  ...sharedControls.metrics,
   type: 'MetricsControl',
   label: t('Percentage metrics'),
   description: t(
     'Metrics for which percentage of total are to be displayed. Calculated from only data within the row limit.',
   ),
-  multi: true,
   visibility: isAggMode,
   resetOnHide: false,
   mapStateToProps: ({ datasource, controls }, controlState) => ({
@@ -162,17 +166,12 @@ const percent_metrics: typeof sharedControls.metrics = {
     externalValidationErrors: validateAggControlValues(controls, [
       controls.groupby?.value,
       controls.metrics?.value,
-      controlState.value,
+      controlState?.value,
     ]),
   }),
   rerender: ['groupby', 'metrics'],
   default: [],
   validators: [],
-};
-
-const dnd_percent_metrics = {
-  ...percent_metrics,
-  type: 'DndMetricSelect',
 };
 
 const config: ControlPanelConfig = {
@@ -251,18 +250,31 @@ const config: ControlPanelConfig = {
           },
           {
             name: 'all_columns',
-            config: isFeatureEnabled(FeatureFlag.ENABLE_EXPLORE_DRAG_AND_DROP)
-              ? dnd_all_columns
-              : all_columns,
+            config: all_columns,
+          },
+        ],
+        [
+          {
+            name: 'enable_details',
+            config: {
+              type: 'CheckboxControl',
+              label: t('Details'),
+              description: t('Enable detailed view on click'),
+              default: false,
+            },
+          },
+        ],
+        [
+          {
+            name: 'all_detail_columns',
+            config: all_detail_columns,
           },
         ],
         [
           {
             name: 'percent_metrics',
             config: {
-              ...(isFeatureEnabled(FeatureFlag.ENABLE_EXPLORE_DRAG_AND_DROP)
-                ? dnd_percent_metrics
-                : percent_metrics),
+              ...percent_metrics,
             },
           },
         ],
@@ -313,7 +325,6 @@ const config: ControlPanelConfig = {
           {
             name: 'row_limit',
             override: {
-              default: 1000,
               visibility: ({ controls }: ControlPanelsContainerProps) =>
                 !controls?.server_pagination?.value,
             },
@@ -544,8 +555,8 @@ const config: ControlPanelConfig = {
   ],
   formDataOverrides: formData => ({
     ...formData,
-    metrics: getStandardizedControls().popAllMetrics(),
-    groupby: getStandardizedControls().popAllColumns(),
+    metrics: formData.standardizedFormData.standardizedState.metrics,
+    groupby: formData.standardizedFormData.standardizedState.columns,
   }),
 };
 

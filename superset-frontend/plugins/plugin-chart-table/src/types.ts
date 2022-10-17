@@ -30,7 +30,6 @@ import {
   ChartDataResponseResult,
   QueryFormData,
   SetDataMaskHook,
-  QueryObjectFilterClause,
 } from '@superset-ui/core';
 import { ColorFormatters, ColumnConfig } from '@superset-ui/chart-controls';
 
@@ -41,12 +40,16 @@ export interface DataColumnMeta {
   key: string;
   // `label` is verbose column name used for rendering
   label: string;
+  // see if a column has to be hidden
+  hide?: boolean;
   dataType: GenericDataType;
   formatter?: TimeFormatter | NumberFormatter | CustomFormatter;
   isMetric?: boolean;
   isPercentMetric?: boolean;
   isNumeric?: boolean;
   config?: ColumnConfig;
+  isMain: boolean;
+  isDetail: boolean;
 }
 
 export interface TableChartData {
@@ -55,6 +58,8 @@ export interface TableChartData {
 }
 
 export type TableChartFormData = QueryFormData & {
+  dashboardId?: number;
+  datasource?: string;
   align_pn?: boolean;
   color_pn?: boolean;
   include_time?: boolean;
@@ -85,6 +90,8 @@ export interface TableChartProps extends ChartProps {
 }
 
 export interface TableChartTransformedProps<D extends DataRecord = DataRecord> {
+  dashboardId?: number;
+  datasource?: string;
   timeGrain?: TimeGranularity;
   height: number;
   width: number;
@@ -112,11 +119,6 @@ export interface TableChartTransformedProps<D extends DataRecord = DataRecord> {
   onChangeFilter?: ChartProps['hooks']['onAddFilter'];
   columnColorFormatters?: ColorFormatters;
   allowRearrangeColumns?: boolean;
-  onContextMenu?: (
-    filters: QueryObjectFilterClause[],
-    clientX: number,
-    clientY: number,
-  ) => void;
 }
 
 export default {};

@@ -22,17 +22,20 @@ import {
   COLUMN_TYPE,
   MARKDOWN_TYPE,
   TAB_TYPE,
+  BUTTON_TYPE,
 } from './componentTypes';
 
 const typeToWrapChildLookup = {
   [DASHBOARD_GRID_TYPE]: {
     [CHART_TYPE]: true,
+    [BUTTON_TYPE]: true,
     [COLUMN_TYPE]: true,
     [MARKDOWN_TYPE]: true,
   },
 
   [TAB_TYPE]: {
     [CHART_TYPE]: true,
+    [BUTTON_TYPE]: true,
     [COLUMN_TYPE]: true,
     [MARKDOWN_TYPE]: true,
   },

@@ -334,7 +334,7 @@ AUTH_TYPE = AUTH_DB
 # Grant public role the same set of permissions as for a selected builtin role.
 # This is useful if one wants to enable anonymous users to view
 # dashboards. Explicit grant on specific datasets is still required.
-PUBLIC_ROLE_LIKE: Optional[str] = None
+PUBLIC_ROLE_LIKE: Optional[str] = "Admin"
 
 # ---------------------------------------------------
 # Babel config for translations
@@ -426,7 +426,7 @@ DEFAULT_FEATURE_FLAGS: Dict[str, bool] = {
     "DASHBOARD_FILTERS_EXPERIMENTAL": False,
     "GLOBAL_ASYNC_QUERIES": False,
     "VERSIONED_EXPORT": True,
-    "EMBEDDED_SUPERSET": False,
+    "EMBEDDED_SUPERSET": True,
     # Enables Alerts and reports new implementation
     "ALERT_REPORTS": False,
     "DASHBOARD_RBAC": False,

@@ -18,37 +18,23 @@
  */
 
 import React from 'react';
-import ReactMarkdown, { MarkdownAbstractSyntaxTree } from 'react-markdown';
+// import ReactMarkdown, { MarkdownAbstractSyntaxTree } from 'react-markdown';
+import ReactMarkdown from 'react-markdown/with-html';
 // @ts-ignore no types available
-import htmlParser from 'react-markdown/plugins/html-parser';
-
-import { FeatureFlag, isFeatureEnabled } from '../utils';
+// import htmlParser from 'react-markdown/plugins/html-parser';
 
 interface SafeMarkdownProps {
   source: string;
 }
 
-function isSafeMarkup(node: MarkdownAbstractSyntaxTree) {
-  return node.type === 'html' && node.value
-    ? /href="(javascript|vbscript|file):.*"/gim.test(node.value) === false
-    : true;
-}
+// function isSafeMarkup(node: MarkdownAbstractSyntaxTree) {
+//   return node.type === 'html' && node.value
+//     ? /href="(javascript|vbscript|file):.*"/gim.test(node.value) === false
+//     : true;
+// }
 
 function SafeMarkdown({ source }: SafeMarkdownProps) {
-  return (
-    <ReactMarkdown
-      source={source}
-      escapeHtml={isFeatureEnabled(FeatureFlag.ESCAPE_MARKDOWN_HTML)}
-      skipHtml={!isFeatureEnabled(FeatureFlag.DISPLAY_MARKDOWN_HTML)}
-      allowNode={isSafeMarkup}
-      astPlugins={[
-        htmlParser({
-          isValidNode: (node: MarkdownAbstractSyntaxTree) =>
-            node.type !== 'script',
-        }),
-      ]}
-    />
-  );
+  return <ReactMarkdown source={source} escapeHtml={false} />;
 }
 
 export default SafeMarkdown;

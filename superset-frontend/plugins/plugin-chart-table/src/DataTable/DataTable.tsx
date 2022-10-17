@@ -17,13 +17,13 @@
  * under the License.
  */
 import React, {
+  useState,
   useCallback,
   useRef,
   ReactNode,
   HTMLProps,
   MutableRefObject,
   CSSProperties,
-  MouseEvent,
 } from 'react';
 import {
   useTable,
@@ -39,6 +39,10 @@ import {
 } from 'react-table';
 import { matchSorter, rankings } from 'match-sorter';
 import { typedMemo } from '@superset-ui/core';
+import Modal from '@material-ui/core/Modal';
+import Backdrop from '@material-ui/core/Backdrop';
+import IconButton from '@material-ui/core/IconButton';
+import Settings from '@material-ui/icons/Settings';
 import GlobalFilter, { GlobalFilterProps } from './components/GlobalFilter';
 import SelectPageSize, {
   SelectPageSizeProps,
@@ -67,7 +71,9 @@ export interface DataTableProps<D extends object> extends TableOptions<D> {
   rowCount: number;
   wrapperRef?: MutableRefObject<HTMLDivElement>;
   onColumnOrderChange: () => void;
-  onContextMenu?: (value: D, clientX: number, clientY: number) => void;
+  Customiser: () => JSX.Element;
+  onRowClick: (data: D) => () => void;
+  enableDetails?: boolean;
 }
 
 export interface RenderHTMLCellProps extends HTMLProps<HTMLTableCellElement> {
@@ -100,7 +106,9 @@ export default typedMemo(function DataTable<D extends object>({
   serverPagination,
   wrapperRef: userWrapperRef,
   onColumnOrderChange,
-  onContextMenu,
+  Customiser,
+  onRowClick,
+  enableDetails,
   ...moreUseTableOptions
 }: DataTableProps<D>): JSX.Element {
   const tableHooks: PluginHook<D>[] = [
@@ -128,6 +136,8 @@ export default typedMemo(function DataTable<D extends object>({
   const paginationRef = useRef<HTMLDivElement>(null);
   const wrapperRef = userWrapperRef || defaultWrapperRef;
   const paginationData = JSON.stringify(serverPaginationData);
+
+  const [openCustomiser, setOpenCustomiser] = useState(false);
 
   const defaultGetTableSize = useCallback(() => {
     if (wrapperRef.current) {
@@ -271,21 +281,14 @@ export default typedMemo(function DataTable<D extends object>({
         {page && page.length > 0 ? (
           page.map(row => {
             prepareRow(row);
+            const { original: data } = row;
             const { key: rowKey, ...rowProps } = row.getRowProps();
             return (
               <tr
+                className="table-row"
+                onClick={enableDetails ? onRowClick(data as D) : undefined}
                 key={rowKey || row.id}
                 {...rowProps}
-                onContextMenu={(e: MouseEvent) => {
-                  if (onContextMenu) {
-                    e.preventDefault();
-                    onContextMenu(
-                      row.original,
-                      e.nativeEvent.clientX,
-                      e.nativeEvent.clientY,
-                    );
-                  }
-                }}
               >
                 {row.cells.map(cell =>
                   cell.render('Cell', { key: cell.column.id }),
@@ -362,24 +365,53 @@ export default typedMemo(function DataTable<D extends object>({
     >
       {hasGlobalControl ? (
         <div ref={globalControlRef} className="form-inline dt-controls">
-          <div className="row">
-            <div className="col-sm-6">
-              {hasPagination ? (
-                <SelectPageSize
-                  total={resultsSize}
-                  current={resultCurrentPageSize}
-                  options={pageSizeOptions}
-                  selectRenderer={
-                    typeof selectPageSize === 'boolean'
-                      ? undefined
-                      : selectPageSize
-                  }
-                  onChange={setPageSize}
-                />
-              ) : null}
-            </div>
-            {searchInput ? (
-              <div className="col-sm-6">
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            {hasPagination ? (
+              <SelectPageSize
+                total={resultsSize}
+                current={resultCurrentPageSize}
+                options={pageSizeOptions}
+                selectRenderer={
+                  typeof selectPageSize === 'boolean'
+                    ? undefined
+                    : selectPageSize
+                }
+                onChange={setPageSize}
+              />
+            ) : null}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton onClick={() => setOpenCustomiser(!openCustomiser)}>
+                <Settings />
+              </IconButton>
+              <Modal
+                open={openCustomiser}
+                onClose={() => setOpenCustomiser(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                BackdropComponent={Backdrop}
+                BackdropProps={{
+                  timeout: 500,
+                }}
+                closeAfterTransition
+              >
+                <Customiser />
+              </Modal>
+              {searchInput ? (
                 <GlobalFilter<D>
                   searchInput={
                     typeof searchInput === 'boolean' ? undefined : searchInput
@@ -388,8 +420,8 @@ export default typedMemo(function DataTable<D extends object>({
                   setGlobalFilter={setGlobalFilter}
                   filterValue={filterValue}
                 />
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}
